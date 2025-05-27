@@ -17,18 +17,27 @@ if (-not (Test-Path .venv -PathType Container)) {
 
 Write-Host "Activating virtual environment..."
 # PowerShell specific activation
-. .venv\Scripts\Activate.ps1
-if ($LASTEXITCODE -ne 0) {
-    Write-Error "Failed to activate virtual environment."
+. .\.venv\Scripts\Activate.ps1
+
+# Check if the VIRTUAL_ENV environment variable is set.
+if (-not $env:VIRTUAL_ENV) {
+    Write-Error "Failed to activate virtual environment. VIRTUAL_ENV not set."
     exit 1
+}
+# Optional: Check if it points to the correct path
+$ExpectedVenvPath = (Resolve-Path ".\\.venv").Path
+if ($env:VIRTUAL_ENV -ne $ExpectedVenvPath) {
+    Write-Warning "VIRTUAL_ENV ('$($env:VIRTUAL_ENV)') does not match expected path ('$ExpectedVenvPath'). This might be okay if nested."
+} else {
+    Write-Host "Virtual environment activated: $env:VIRTUAL_ENV"
 }
 
 Write-Host "Installing dependencies from requirements.txt..."
-pip install -r requirements.txt
+$PipExe = Join-Path $env:VIRTUAL_ENV "Scripts\\pip.exe"
+Write-Host "Using pip at: $PipExe"
+& $PipExe install -r requirements.txt
 if ($LASTEXITCODE -ne 0) {
-    Write-Error "Failed to install dependencies."
-    # Consider deactivating venv if further script execution is problematic
-    # Deactivate-Venv # (This is not a standard command, manual deactivation might be needed or just exit)
+    Write-Error "Failed to install dependencies using '$PipExe'. Please check requirements.txt and network connection."
     exit 1
 }
 
@@ -37,7 +46,9 @@ Write-Host "Press CTRL+C to stop the server."
 
 # Run Waitress server
 # The --call argument tells waitress to find the 'app' object within the 'serve_protected' module
-waitress-serve --host=127.0.0.1 --port=8080 serve_protected:app
+$WaitressServeExe = Join-Path $env:VIRTUAL_ENV "Scripts\\waitress-serve.exe"
+Write-Host "Using waitress-serve at: $WaitressServeExe"
+& $WaitressServeExe --host=127.0.0.1 --port=8080 serve_protected:app
 
 # Deactivate virtual environment when server stops (Ctrl+C)
 # Note: This part might not execute if Ctrl+C terminates the script abruptly.

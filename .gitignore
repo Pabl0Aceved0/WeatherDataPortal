@@ -30,4 +30,7 @@ certs/localhost.crt
 certs/localhost.key
 *.log
 *.bak
+
+# Security scan outputs (do not commit sensitive reports)
 checkov_report.json/
+

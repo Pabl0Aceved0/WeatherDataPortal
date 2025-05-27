@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from flask import Flask
 
 # Load environment variables from .env file
 # This should be done early in your application's lifecycle
@@ -10,6 +11,8 @@ WINDY_API_TOKEN = os.getenv("WINDY_API_TOKEN")
 
 if not WINDY_API_TOKEN:
     print("CRITICAL: WINDY_API_TOKEN is not set. Please check your .env file.")
+
+app = Flask(__name__)
 
 def fetch_weather_data():
     if not WINDY_API_TOKEN:
@@ -24,14 +27,15 @@ def fetch_weather_data():
     # return data
     return {"temperature": 25, "condition": "Sunny"} # Placeholder data
 
-if __name__ == "__main__":
-    if not WINDY_API_TOKEN:
-        print("Please configure your WINDY_API_TOKEN in a .env file.")
-    else:
-        print(f"Windy API Token loaded successfully: {WINDY_API_TOKEN[:4]}...")
-        # Example usage
-        weather = fetch_weather_data()
-        if weather:
-            print(f"Current weather: {weather}")
+@app.route('/')
+def index():
+    print("Debug: Entered index route")
+    weather = fetch_weather_data()
+    print("Debug: Weather data fetched:", weather)
+    if weather:
+        return f"Current weather: {weather}"
+    return "Error fetching weather data."
 
-    # Your application's main logic would continue here
+if __name__ == "__main__":
+    print("Debug: Flask application is running on http://localhost:8080")
+    app.run(host="0.0.0.0", port=8080)

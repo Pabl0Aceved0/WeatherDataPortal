@@ -1,3 +1,7 @@
 Flask
 waitress
 cryptography==41.0.3
+requests
+python-dotenv
+requests
+python-dotenv

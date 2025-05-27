@@ -33,11 +33,12 @@ if ($env:VIRTUAL_ENV -ne $ExpectedVenvPath) {
 }
 
 Write-Host "Installing dependencies from requirements.txt..."
-$PipExe = Join-Path $env:VIRTUAL_ENV "Scripts\\pip.exe"
+$RequirementsPath = "tests\requirements.txt" # Updated path
+$PipExe = Join-Path $env:VIRTUAL_ENV "Scripts\pip.exe"
 Write-Host "Using pip at: $PipExe"
-& $PipExe install -r requirements.txt
+& $PipExe install -r $RequirementsPath
 if ($LASTEXITCODE -ne 0) {
-    Write-Error "Failed to install dependencies using '$PipExe'. Please check requirements.txt and network connection."
+    Write-Error "Failed to install dependencies using '$PipExe'. Please check $RequirementsPath and network connection."
     exit 1
 }
 
@@ -45,10 +46,10 @@ Write-Host "Starting Weather Portal with Waitress on http://localhost:8080 ..."
 Write-Host "Press CTRL+C to stop the server."
 
 # Run Waitress server
-# The --call argument tells waitress to find the 'app' object within the 'serve_protected' module
+# This tells waitress to find the 'app' object within the 'src.app' module
 $WaitressServeExe = Join-Path $env:VIRTUAL_ENV "Scripts\\waitress-serve.exe"
 Write-Host "Using waitress-serve at: $WaitressServeExe"
-& $WaitressServeExe --host=127.0.0.1 --port=8080 serve_protected:app
+& $WaitressServeExe --host=127.0.0.1 --port=8080 src.app:app
 
 # Deactivate virtual environment when server stops (Ctrl+C)
 # Note: This part might not execute if Ctrl+C terminates the script abruptly.

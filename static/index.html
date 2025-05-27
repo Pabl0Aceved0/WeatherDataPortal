@@ -5,40 +5,84 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Windy.com Embedded Map</title>
     <style>
-        body, html { 
-            margin: 0; 
-            padding: 0; 
-            height: 100%; 
-            overflow: hidden; /* Prevent scrollbars around the iframe */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            min-height: 100vh;
+            box-sizing: border-box;
+            background: #f5f7fa;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            width: 100vw;
+        }
+        .map-container {
+            flex: 1 1 auto;
+            display: flex;
+            align-items: stretch;
+            justify-content: stretch;
+            width: 100vw;
+            height: 100%;
+            min-height: 0;
         }
         iframe {
-            width: 100%;
-            height: 100%;
-            border: none; /* Remove iframe border */
+            border: none;
+            width: 100vw;
+            height: 80vh;
+            min-height: 300px;
+            min-width: 200px;
+            flex: 1 1 auto;
+            max-width: 100vw;
+            max-height: 100vh;
+        }
+        @media (max-width: 700px) {
+            iframe { min-height: 200px; height: 60vh; }
+        }
+        header {
+            background: #0077be;
+            color: #fff;
+            padding: 1rem;
+            text-align: center;
+            font-size: 1.2rem;
+        }
+        .footer {
+            text-align: center;
+            color: #888;
+            font-size: 0.95em;
+            padding: 0.7rem 0;
         }
     </style>
 </head>
 <body>
-    <!-- 
-      Embed Windy.com map using an iframe.
-      Parameters can be adjusted:
-      - lat, lon: Initial latitude and longitude
-      - zoom: Initial zoom level (e.g., 3-18)
-      - overlay: Default weather overlay (e.g., 'wind', 'waves', 'temp', 'rain')
-      - product: Weather model (e.g., 'ecmwf', 'gfs')
-      - level: Altitude level (e.g., 'surface')
-      - key: Your Windy API key
-      
-      Refer to Windy's embedding documentation for all available parameters.
-    -->
-    <iframe 
-        src="https://embed.windy.com/embed2.html?lat=20.1&lon=10.1&zoom=3&overlay=wind&key=44oA05Vewb0z27oMjdl5lRr8Cjy0Ggfr"
-        allowfullscreen>
-    </iframe>
-    <script>
-      const windyApiKey = "YOUR_WINDY_API_KEY"; // Replace with dynamic fetching logic
-      const iframeSrc = `https://embed.windy.com/embed2.html?lat=20.1&lon=10.1&zoom=3&overlay=wind&key=${windyApiKey}`;
-      document.querySelector('iframe').src = iframeSrc;
-    </script>
+    <header>
+        <h1>Windy.com Map Portal</h1>
+        <div style="font-size:1rem;">Responsive, mobile-friendly weather map</div>
+    </header>
+    <div class="map-container">
+        <!-- 
+          Embed Windy.com map using an iframe.
+          Parameters can be adjusted:
+          - lat, lon: Initial latitude and longitude
+          - zoom: Initial zoom level (e.g., 3-18)
+          - overlay: Default weather overlay (e.g., 'wind', 'waves', 'temp', 'rain')
+          - product: Weather model (e.g., 'ecmwf', 'gfs')
+          - level: Altitude level (e.g., 'surface')
+          - key: Your Windy API key
+          
+          Refer to Windy's embedding documentation for all available parameters.
+        -->
+        <iframe 
+            src="https://embed.windy.com/embed2.html?lat=20.1&lon=10.1&zoom=3&overlay=wind&key=44oA05Vewb0z27oMjdl5lRr8Cjy0Ggfr"
+            allowfullscreen
+            title="Windy.com Weather Map"
+        ></iframe>
+    </div>
+    <div class="footer">
+        &copy; 2025 Windy.com | <a href="https://www.w3schools.com/html/html_responsive.asp" target="_blank">Responsive Design Info</a>
+    </div>
 </body>
 </html>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Windy.com Embedded Map</title>
+    <style>
+        body, html { 
+            margin: 0; 
+            padding: 0; 
+            height: 100%; 
+            overflow: hidden; /* Prevent scrollbars around the iframe */
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none; /* Remove iframe border */
+        }
+    </style>
+</head>
+<body>
+    <!-- 
+      Embed Windy.com map using an iframe.
+      Parameters can be adjusted:
+      - lat, lon: Initial latitude and longitude
+      - zoom: Initial zoom level (e.g., 3-18)
+      - overlay: Default weather overlay (e.g., 'wind', 'waves', 'temp', 'rain')
+      - product: Weather model (e.g., 'ecmwf', 'gfs')
+      - level: Altitude level (e.g., 'surface')
+      - key: Your Windy API key
+      
+      Refer to Windy's embedding documentation for all available parameters.
+    -->
+    <iframe 
+        src="https://embed.windy.com/embed2.html?lat=20.1&lon=10.1&zoom=3&overlay=wind&key=44oA05Vewb0z27oMjdl5lRr8Cjy0Ggfr"
+        allowfullscreen>
+    </iframe>
+</body>
+</html>

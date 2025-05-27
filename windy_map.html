@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Engineering Weather Portal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            width: 100vw;
+            background: #f4f8fb;
+        }
+        header {
+            background: #0077be;
+            color: #fff;
+            padding: 1rem;
+            text-align: center;
+        }
+        .banner {
+            background: #ffcc00;
+            color: #222;
+            padding: 0.7rem 1rem;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .links {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1.5rem;
+            margin: 1rem 0;
+        }
+        .links a {
+            color: #0077be;
+            text-decoration: none;
+            font-weight: 600;
+            background: #e3f2fd;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        .links a:hover {
+            background: #b3e5fc;
+        }
+        .map-container {
+            flex: 1 1 auto;
+            display: flex;
+            align-items: stretch;
+            justify-content: stretch;
+            width: 100vw;
+            height: 100%;
+            min-height: 0;
+        }
+        iframe {
+            border: none;
+            width: 100%;
+            height: 100%;
+            min-height: 300px;
+            min-width: 200px;
+            flex: 1 1 auto;
+        }
+        .weather-info {
+            background: #fff;
+            margin: 1rem auto;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            max-width: 500px;
+            text-align: center;
+        }
+        .weather-info input[type="text"] {
+            padding: 0.4rem 0.6rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 0.5rem;
+        }
+        .weather-info button {
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            border: none;
+            background: #0077be;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .weather-info button:hover {
+            background: #005a8c;
+        }
+        @media (max-width: 700px) {
+            header { font-size: 1.1rem; padding: 0.5rem; }
+            .banner { font-size: 1rem; }
+            .map-container { min-height: 200px; }
+            iframe { min-height: 200px; }
+            .weather-info { padding: 1rem; }
+        }
+    </style>
+    <script>
+        // Fetch OpenWeatherMap data and display it
+        async function fetchWeather(cityName = 'London') { // Default to London if no city is provided
+            const apiKey = '3b77fc1b9c271fca6cb85ea398eea4d7';
+            let lat, lon;
+            const weatherDisplay = {
+                temp: document.getElementById('owm-temp'),
+                desc: document.getElementById('owm-desc'),
+                wind: document.getElementById('owm-wind'),
+                city: document.getElementById('owm-city')
+            };
+
+            // Clear previous results and show loading
+            weatherDisplay.city.textContent = 'Loading...';
+            weatherDisplay.temp.textContent = '...';
+            weatherDisplay.desc.textContent = '...';
+            weatherDisplay.wind.textContent = '...';
+
+            try {
+                // If a city name is provided, get its coordinates first
+                const geoUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(cityName)}&limit=1&appid=${apiKey}`;
+                const geoRes = await fetch(geoUrl);
+                if (!geoRes.ok) throw new Error('Failed to fetch city coordinates. Status: ' + geoRes.status);
+                const geoData = await geoRes.json();
+
+                if (!geoData || geoData.length === 0) {
+                    throw new Error(`City "${cityName}" not found.`);
+                }
+                lat = geoData[0].lat;
+                lon = geoData[0].lon;
+                
+                const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`;
+                const weatherRes = await fetch(weatherUrl);
+                if (!weatherRes.ok) throw new Error('Failed to fetch weather data. Status: ' + weatherRes.status);
+                const data = await weatherRes.json();
+
+                weatherDisplay.city.textContent = `${data.name}, ${data.sys.country}`;
+                weatherDisplay.temp.textContent = data.main.temp + ' °C';
+                weatherDisplay.desc.textContent = data.weather[0].description;
+                weatherDisplay.wind.textContent = data.wind.speed + ' m/s';
+
+            } catch (e) {
+                console.error("Weather fetch error:", e);
+                weatherDisplay.city.textContent = `Error: ${e.message}`;
+                weatherDisplay.temp.textContent = 'N/A';
+                weatherDisplay.desc.textContent = 'N/A';
+                weatherDisplay.wind.textContent = 'N/A';
+            }
+        }
+
+        function searchCityWeather() {
+            const cityInput = document.getElementById('city-input');
+            const cityName = cityInput.value.trim();
+            if (cityName) {
+                fetchWeather(cityName);
+            } else {
+                // Optionally, alert user or do nothing if input is empty
+                alert("Please enter a city name.");
+            }
+        }
+
+        // window.onload = fetchWeather; // Call with default city "London"
+        // Updated to call fetchWeather only if not on LocalTunnel, to respect privacy setting
+        window.addEventListener('DOMContentLoaded', function() {
+            if(!window.location.hostname.endsWith('.loca.lt')) {
+                fetchWeather(); // Load default weather (London)
+            } else {
+                // For LocalTunnel, clear the default city display or show privacy message
+                document.getElementById('owm-city').textContent = '(Weather hidden on public link)';
+                document.getElementById('owm-temp').textContent = '';
+                document.getElementById('owm-desc').textContent = '';
+                document.getElementById('owm-wind').textContent = '';
+            }
+        });
+    </script>
+</head>
+<body>
+    <header>
+        <h1>Engineering Weather Portal</h1>
+        <div class="banner">
+            <!-- Removed the GitHub link and description -->
+        </div>
+    </header>
+    <div class="links">
+        <a href="https://open-meteo.com/" target="_blank">Open-Meteo (Free API)</a>
+        <a href="https://openweathermap.org/" target="_blank">OpenWeatherMap (Free API)</a>
+        <a href="https://www.windy.com/" target="_blank">Windy.com (Map & Data)</a>
+        <a href="https://github.com/public-apis/public-apis#weather" target="_blank">More Open Weather APIs</a>
+    </div>
+    <div class="weather-info">
+        <h2>Current Weather (OpenWeatherMap)</h2>
+        <div>
+            <input type="text" id="city-input" placeholder="Enter city name (e.g., Paris)">
+            <button onclick="searchCityWeather()">Search</button>
+        </div>
+        <div style="margin-top: 0.5rem;">City: <span id="owm-city">...</span></div>
+        <div>Temperature: <span id="owm-temp">...</span></div>
+        <div>Description: <span id="owm-desc">...</span></div>
+        <div>Wind Speed: <span id="owm-wind">...</span></div>
+    </div>
+    <div class="weather-info" style="background:#e3f2fd;max-width:600px;box-shadow:0 2px 8px rgba(0,119,190,0.08);margin-top:1.5rem;">
+        <h2 style="color:#0077be;margin-bottom:0.5rem;">🌐 Explore More Weather Data</h2>
+        <div style="font-size:1.05rem;margin-bottom:0.7rem;">Compare and analyze rich weather data from open APIs. Great for engineers, students, and weather enthusiasts!</div>
+        <div style="display:flex;align-items:center;gap:0.7rem;flex-wrap:wrap;justify-content:center;">
+            <label for="api-select" style="font-weight:600;">Choose API:</label>
+            <select id="api-select" style="margin:0 0.5rem 0.5rem 0.5rem;padding:0.3rem 0.7rem;border-radius:4px;border:1px solid #bbb;">
+                <option value="open-meteo">Open-Meteo (No Key)</option>
+                <!-- Future: Add more APIs here -->
+            </select>
+            <button onclick="fetchOtherWeather()" style="padding:0.3rem 0.9rem; border-radius:4px; border:none; background:#0077be; color:#fff; font-weight:600; cursor:pointer;">Analyze</button>
+        </div>
+        <div id="other-weather-result" style="margin-top:1.2rem;text-align:left;min-height:80px;font-size:1.08rem;"></div>
+    </div>
+    <div class="lt-info" style="text-align:center; margin:1rem 0;">
+        <strong>Share your public URL:</strong>
+        <input type="text" id="lt-url-input" placeholder="Paste your LocalTunnel URL here" style="width:260px;max-width:60vw;padding:0.3rem 0.5rem;border-radius:4px;border:1px solid #bbb;" />
+        <button onclick="setLTUrl()" style="margin-left:0.5rem; padding:0.3rem 0.7rem; border-radius:4px; border:none; background:#ffcc00; color:#222; cursor:pointer;">Set</button>
+        <br>
+        <span id="lt-url" style="font-family:monospace; color:#0077be;display:inline-block;margin-top:0.5rem;min-width:220px;">(Start LocalTunnel to get your link)</span>
+        <button onclick="copyLTUrl()" style="margin-left:1rem; padding:0.3rem 0.7rem; border-radius:4px; border:none; background:#0077be; color:#fff; cursor:pointer;">Copy</button>
+        <div style="font-size:0.95rem; color:#555; margin-top:0.5rem;">Run <code>lt --port 8443 --subdomain engclimate</code> in your terminal and paste the link here!</div>
+    </div>
+    <div class="map-container">
+        <iframe
+          src="https://embed.windy.com/embed2.html?lat=50.4&lon=14.3&detailLat=50.4&detailLon=14.3&zoom=5&level=surface&overlay=wind&product=ecmwf&menu=&message=true&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=default&metricTemp=default&radarRange=-1"
+          allowfullscreen
+        ></iframe>
+    </div>
+    <script>
+    // Minimal, fast, and agnostic LocalTunnel sharing logic
+    function setLTUrl() {
+        const input = document.getElementById('lt-url-input');
+        const url = input.value.trim();
+        if(url.startsWith('http')) {
+            document.getElementById('lt-url').textContent = url;
+            input.value = '';
+        } else {
+            alert('Please enter a valid LocalTunnel URL (starting with http)');
+        }
+    }
+    function copyLTUrl() {
+        const url = document.getElementById('lt-url').textContent;
+        if(url.startsWith('http')) {
+            navigator.clipboard.writeText(url);
+            alert('Copied: ' + url);
+        } else {
+            alert('Please paste your LocalTunnel URL first!');
+        }
+    }
+    // Auto-detect LocalTunnel URL only if needed
+    window.addEventListener('DOMContentLoaded', function() {
+        if(window.location.hostname.endsWith('.loca.lt')) {
+            document.getElementById('lt-url').textContent = window.location.origin;
+        }
+    });
+    // Fast, memory-efficient Open Weather API fetch/analysis
+    async function fetchOtherWeather() {
+        const api = document.getElementById('api-select').value;
+        const lat = 50.4, lon = 14.3;
+        let url = '';
+        const resultDiv = document.getElementById('other-weather-result');
+        resultDiv.textContent = 'Fetching data...';
+        if(api === 'open-meteo') {
+            url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,precipitation,weathercode,windspeed_10m&current_weather=true&forecast_days=1`;
+        } else {
+            resultDiv.textContent = 'API not implemented.';
+            return;
+        }
+        try {
+            const res = await fetch(url);
+            if(!res.ok) throw new Error('Failed to fetch');
+            const data = await res.json();
+            const h = data.hourly;
+            // Use typed arrays for memory efficiency
+            const temps = Float32Array.from(h.temperature_2m);
+            const winds = Float32Array.from(h.windspeed_10m);
+            const precs = Float32Array.from(h.precipitation);
+            let minT = temps[0], maxT = temps[0], sumT = 0, sumW = 0, maxW = winds[0], sumP = 0;
+            for(let i=0;i<temps.length;i++) {
+                const t = temps[i], w = winds[i], p = precs[i];
+                if(t < minT) minT = t;
+                if(t > maxT) maxT = t;
+                if(w > maxW) maxW = w;
+                sumT += t; sumW += w; sumP += p;
+            }
+            const avgT = sumT/temps.length, avgW = sumW/winds.length;
+            const curr = data.current_weather;
+            // Use textContent for fast DOM update, then set HTML for card
+            resultDiv.innerHTML = `
+                <div style='display:flex;gap:1.2rem;flex-wrap:wrap;align-items:flex-end;'>
+                  <div style='flex:1 1 180px;background:#fff;border-radius:8px;padding:1rem 1.2rem;box-shadow:0 1px 4px rgba(0,119,190,0.07);margin-bottom:0.5rem;'>
+                    <div style='font-size:1.2rem;font-weight:600;color:#0077be;margin-bottom:0.3rem;'>Current</div>
+                    <div style='font-size:1.1rem;'>🌡️ <b>${curr.temperature}°C</b></div>
+                    <div style='font-size:1.05rem;'>💨 ${curr.windspeed} m/s</div>
+                    <div style='font-size:0.98rem;color:#555;'>Weather code: ${curr.weathercode}</div>
+                  </div>
+                  <div style='flex:1 1 180px;background:#fff;border-radius:8px;padding:1rem 1.2rem;box-shadow:0 1px 4px rgba(0,119,190,0.07);margin-bottom:0.5rem;'>
+                    <div style='font-size:1.1rem;font-weight:600;color:#0077be;margin-bottom:0.3rem;'>Today</div>
+                    <div>Min: <b>${minT.toFixed(1)}°C</b></div>
+                    <div>Max: <b>${maxT.toFixed(1)}°C</b></div>
+                    <div>Avg: <b>${avgT.toFixed(1)}°C</b></div>
+                  </div>
+                  <div style='flex:1 1 180px;background:#fff;border-radius:8px;padding:1rem 1.2rem;box-shadow:0 1px 4px rgba(0,119,190,0.07);margin-bottom:0.5rem;'>
+                    <div style='font-size:1.1rem;font-weight:600;color:#0077be;margin-bottom:0.3rem;'>Wind & Precip</div>
+                    <div>Max wind: <b>${maxW.toFixed(1)} m/s</b></div>
+                    <div>Avg wind: <b>${avgW.toFixed(1)} m/s</b></div>
+                    <div>Precip: <b>${sumP.toFixed(1)} mm</b></div>
+                  </div>
+                </div>
+                <div style='margin-top:0.7rem;font-size:0.97em;color:#0077be;'>Powered by <a href='https://open-meteo.com/' target='_blank'>Open-Meteo</a></div>
+            `;
+        } catch(e) {
+            resultDiv.textContent = 'Error loading data. Check your connection or try again later.';
+        }
+    }
+    // Hide all weather data if accessed via LocalTunnel for privacy/demo
+    window.addEventListener('DOMContentLoaded', function() {
+        if(window.location.hostname.endsWith('.loca.lt')) {
+            document.getElementById('owm-temp').textContent = '';
+            document.getElementById('owm-desc').textContent = '';
+            document.getElementById('owm-wind').textContent = '';
+            document.getElementById('owm-city').textContent = '';
+            var other = document.getElementById('other-weather-result');
+            if(other) other.innerHTML = '<span style="color:#888;">Weather data is hidden on public LocalTunnel links.</span>';
+        }
+    });
+    // NWS-style forecast using OpenWeatherMap and Open-Meteo
+    async function fetchNWSForecast() {
+        const lat = 50.4, lon = 14.3;
+        const owmKey = '3b77fc1b9c271fca6cb85ea398eea4d7'; // Your OpenWeatherMap API key
+        const windyKey = 'YOUR_WINDY_API_KEY'; // Replace with your Windy API key if needed
+        const nwsDiv = document.getElementById('nws-forecast');
+        nwsDiv.textContent = 'Loading NWS-style forecast...';
+        try {
+            // Fetch OpenWeatherMap current and forecast
+            const owmUrl = `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&appid=${owmKey}&units=metric&exclude=minutely,alerts`;
+            const owmRes = await fetch(owmUrl);
+            if (!owmRes.ok) throw new Error('OWM error');
+            const owm = await owmRes.json();
+            // Fetch Open-Meteo hourly
+            const omUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,precipitation,weathercode,windspeed_10m&current_weather=true&forecast_days=2`;
+            const omRes = await fetch(omUrl);
+            if (!omRes.ok) throw new Error('Open-Meteo error');
+            const om = await omRes.json();
+            // Compose NWS-style summary
+            const curr = owm.current;
+            const today = owm.daily[0];
+            const tomorrow = owm.daily[1];
+            let html = `<b>Current:</b> ${curr.weather[0].description}, ${curr.temp.toFixed(1)}°C, wind ${curr.wind_speed} m/s.<br>`;
+            html += `<b>Today:</b> High ${today.temp.max.toFixed(1)}°C, Low ${today.temp.min.toFixed(1)}°C, Precip: ${today.pop*100}% chance.<br>`;
+            html += `<b>Tomorrow:</b> High ${tomorrow.temp.max.toFixed(1)}°C, Low ${tomorrow.temp.min.toFixed(1)}°C, Precip: ${tomorrow.pop*100}% chance.<br>`;
+            // Add Open-Meteo wind/precip trends
+            const windArr = om.hourly.windspeed_10m;
+            const precipArr = om.hourly.precipitation;
+            const maxWind = Math.max.apply(null, windArr).toFixed(1);
+            const totalPrecip = precipArr.reduce((a,b)=>a+b,0).toFixed(1);
+            html += `<b>Wind (Open-Meteo):</b> Max ${maxWind} m/s, <b>Total Precip:</b> ${totalPrecip} mm (next 48h)`;
+            nwsDiv.innerHTML = html;
+        } catch(e) {
+            nwsDiv.innerHTML = '<span style="color:#c00;">Error loading NWS-style forecast.</span>';
+        }
+    }
+    // Call on load (but not on LocalTunnel for privacy)
+    window.addEventListener('DOMContentLoaded', function() {
+        if(!window.location.hostname.endsWith('.loca.lt')) fetchNWSForecast();
+    });
+    </script>
+    <div style="display:none;">
+        <code>curl https://loca.lt/mytunnelpassword</code>
+        <div style="color:#888;font-size:0.95em;margin-top:0.3em;">
+            <b>Tip:</b> To get your LocalTunnel password for sharing, run this command on the server running LocalTunnel. Share the result with your visitors to bypass the LocalTunnel reminder page.
+        </div>
+    </div>
+</body>
+</html>

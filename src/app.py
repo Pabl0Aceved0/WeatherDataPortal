@@ -179,8 +179,8 @@ def index():
     print("Debug: Entered index route")
     lat = request.args.get('lat', 50.4, type=float)
     lon = request.args.get('lon', 14.3, type=float)
-    weather = fetch_real_windy_data(lat, lon)
-    climate_insights = []
+    weather = fetch_weather_data(lat, lon)
+    climate_insights = get_climate_insights(weather) if weather else []
     windy_map_url = f"https://embed.windy.com/embed2.html?lat={lat}&lon={lon}&detailLat={lat}&detailLon={lon}&width=100%25&height=500&zoom=8&level=surface&overlay=wind&product=ecmwf&menu=&message=true&marker=true&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=default&metricTemp=default&radarRange=-1"
     if WINDY_API_TOKEN_MAP:
         windy_map_url += f"&key={WINDY_API_TOKEN_MAP}"
@@ -192,65 +192,23 @@ def index():
         <meta name='viewport' content='width=device-width, initial-scale=1.0'>
         <title>Weather Portal - Responsive</title>
         <style>
-            html, body {{
-                margin: 0; padding: 0; height: 100%; width: 100vw; box-sizing: border-box; background: #f5f7fa;
-            }}
-            body {{
-                font-family: 'Segoe UI', Arial, sans-serif;
-                min-height: 100vh; width: 100vw;
-                display: flex; flex-direction: column;
-            }}
-            .header {{
-                position: sticky; top: 0; z-index: 10;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: #fff; padding: 1.1rem 0.7rem; border-radius: 0 0 16px 16px; text-align: center;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-            }}
-            .container {{
-                flex: 1 1 auto; width: 100%; max-width: 480px; margin: 0 auto; padding: 1rem 0.5rem 0.5rem 0.5rem;
-                display: flex; flex-direction: column; gap: 1.1rem;
-            }}
-            .weather-card, .climate-insights {{
-                background: #fff; border-radius: 10px; padding: 1.1rem 0.7rem; box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-            }}
-            .weather-grid {{
-                display: flex; flex-wrap: wrap; gap: 0.7rem; justify-content: space-between;
-            }}
-            .weather-item {{
-                flex: 1 1 45%; min-width: 120px; background: #f8f9fa; border-radius: 8px; padding: 0.8rem; text-align: center; margin-bottom: 0.5rem;
-            }}
+            html, body {{ margin: 0; padding: 0; height: 100%; width: 100vw; box-sizing: border-box; background: #f5f7fa; }}
+            body {{ font-family: 'Segoe UI', Arial, sans-serif; min-height: 100vh; width: 100vw; display: flex; flex-direction: column; }}
+            .header {{ position: sticky; top: 0; z-index: 10; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; padding: 1.1rem 0.7rem; border-radius: 0 0 16px 16px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }}
+            .container {{ flex: 1 1 auto; width: 100%; max-width: 480px; margin: 0 auto; padding: 1rem 0.5rem 0.5rem 0.5rem; display: flex; flex-direction: column; gap: 1.1rem; }}
+            .weather-card, .climate-insights {{ background: #fff; border-radius: 10px; padding: 1.1rem 0.7rem; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }}
+            .weather-grid {{ display: flex; flex-wrap: wrap; gap: 0.7rem; justify-content: space-between; }}
+            .weather-item {{ flex: 1 1 45%; min-width: 120px; background: #f8f9fa; border-radius: 8px; padding: 0.8rem; text-align: center; margin-bottom: 0.5rem; }}
             .weather-value {{ font-size: 1.4em; font-weight: bold; color: #667eea; }}
-            .coordinates {{
-                background: #e3f2fd; padding: 0.6rem; border-radius: 5px; margin-bottom: 0.7rem; font-family: monospace; text-align: center;
-            }}
-            .map-container {{
-                background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-                width: 100%;
-            }}
-            .map-container iframe {{
-                width: 100%; min-width: 200px; height: 220px; border: none; display: block;
-            }}
-            .nav-links {{
-                display: flex; flex-wrap: wrap; gap: 0.6rem; justify-content: center; margin: 0.7rem 0 0.2rem 0;
-            }}
-            .nav-links a {{
-                flex: 1 1 40%; min-width: 120px; text-align: center; padding: 0.8rem 0.5rem; background: #667eea; color: #fff; text-decoration: none; border-radius: 6px; font-size: 1.1em; transition: background 0.2s;
-            }}
+            .coordinates {{ background: #e3f2fd; padding: 0.6rem; border-radius: 5px; margin-bottom: 0.7rem; font-family: monospace; text-align: center; }}
+            .map-container {{ background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.07); width: 100%; }}
+            .map-container iframe {{ width: 100%; min-width: 200px; height: 220px; border: none; display: block; }}
+            .nav-links {{ display: flex; flex-wrap: wrap; gap: 0.6rem; justify-content: center; margin: 0.7rem 0 0.2rem 0; }}
+            .nav-links a {{ flex: 1 1 40%; min-width: 120px; text-align: center; padding: 0.8rem 0.5rem; background: #667eea; color: #fff; text-decoration: none; border-radius: 6px; font-size: 1.1em; transition: background 0.2s; }}
             .nav-links a:hover, .nav-links a:focus {{ background: #5a6fd8; outline: none; }}
-            .climate-insights {{
-                background: #e3f2fd; color: #222; border-left: 5px solid #667eea; font-size: 1.08em;
-            }}
-            .footer {{
-                text-align: center; color: #888; font-size: 0.95em; padding: 1.2rem 0 0.5rem 0;
-            }}
-            @media (max-width: 700px) {{
-                .container {{ max-width: 100vw; padding: 0.5rem; }}
-                .header {{ font-size: 1.1rem; padding: 0.7rem 0.5rem; }}
-                .weather-grid {{ flex-direction: column; gap: 0.5rem; }}
-                .weather-item {{ min-width: 90px; padding: 0.7rem; }}
-                .nav-links a {{ font-size: 1em; padding: 0.7rem 0.3rem; }}
-                .map-container iframe {{ height: 160px; }}
-            }}
+            .climate-insights {{ background: #e3f2fd; color: #222; border-left: 5px solid #667eea; font-size: 1.08em; }}
+            .footer {{ text-align: center; color: #888; font-size: 0.95em; padding: 1.2rem 0 0.5rem 0; }}
+            @media (max-width: 700px) {{ .container {{ max-width: 100vw; padding: 0.5rem; }} .header {{ font-size: 1.1rem; padding: 0.7rem 0.5rem; }} .weather-grid {{ flex-direction: column; gap: 0.5rem; }} .weather-item {{ min-width: 90px; padding: 0.7rem; }} .nav-links a {{ font-size: 1em; padding: 0.7rem 0.3rem; }} .map-container iframe {{ height: 160px; }} }}
         </style>
     </head>
     <body>
@@ -260,7 +218,10 @@ def index():
         </div>
         <div class='container'>
             <div class='weather-card'>
-                <div class='coordinates'>📍 Lat: {lat}°, Lon: {lon}°</div>
+                <div class='coordinates' style='font-size:1.1em;'>
+                    <span style="color:#0077be;font-weight:bold;">📍 Map Point:</span>
+                    <span style="font-family:monospace;">Lat: {lat:.5f}°, Lon: {lon:.5f}°</span>
+                </div>
                 <div class='weather-grid'>
                     <div class='weather-item'><div class='weather-value'>{weather.get('temperature', 'N/A')}</div><div>Temperature (°C)</div></div>
                     <div class='weather-item'><div class='weather-value'>{weather.get('wind_speed', weather.get('condition', 'N/A'))}</div><div>Wind/Condition</div></div>
@@ -270,7 +231,10 @@ def index():
                 <div style='color:#666;font-size:0.95em;margin-top:0.7em;'>Source: {weather.get('source', 'Unknown')}</div>
             </div>
             <div class='map-container'>
-                <iframe src='{windy_map_url}' allowfullscreen title='Windy.com Weather Map'></iframe>
+                <iframe id='windy-iframe' src='{windy_map_url}' allowfullscreen title='Windy.com Weather Map'></iframe>
+                <div style='text-align:center;font-size:0.98em;color:#555;margin-top:0.3em;'>
+                    <b>Tip:</b> Haz clic en el mapa para mover el punto y ver el clima de otra ubicación.
+                </div>
             </div>
             <div class='climate-insights'>
                 <b>Climate Insights:</b>
@@ -288,6 +252,29 @@ def index():
         <div class='footer'>
             &copy; 2025 Windy.com | <a href='https://www.w3schools.com/html/html_responsive.asp' target='_blank'>Responsive Info</a>
         </div>
+        <script>
+        window.addEventListener('message', function(event) {{
+            try {{
+                if (typeof event.data === 'string' && event.data.includes('lat') && event.data.includes('lon')) {{
+                    var latMatch = event.data.match(/lat=([-\d.]+)/);
+                    var lonMatch = event.data.match(/lon=([-\d.]+)/);
+                    if (latMatch && lonMatch) {{
+                        var lat = latMatch[1];
+                        var lon = lonMatch[1];
+                        window.location.search = '?lat=' + lat + '&lon=' + lon;
+                    }}
+                }}
+            }} catch (e) {{ /* ignore */ }}
+        }});
+        function sendMapClickHandler() {{
+            var iframe = document.getElementById('windy-iframe');
+            if (!iframe) return;
+            iframe.contentWindow.postMessage(JSON.stringify({{ action: 'on', event: 'click', callback: true }}), '*');
+        }}
+        window.onload = function() {{
+            setTimeout(sendMapClickHandler, 1200);
+        }};
+        </script>
     </body>
     </html>
     """

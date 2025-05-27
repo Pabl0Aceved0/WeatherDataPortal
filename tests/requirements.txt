@@ -1,7 +1,5 @@
 Flask
 waitress
-cryptography>=43.0.1
-requests
-python-dotenv
+cryptography>=44.0.1
 requests
 python-dotenv

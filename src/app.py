@@ -1,37 +1,48 @@
 import os
 from dotenv import load_dotenv
+from flask import Flask
 
 # Load environment variables from .env file
 # This should be done early in your application's lifecycle
 load_dotenv()
 
-# Get the API token
-WINDY_API_TOKEN = os.getenv("WINDY_API_TOKEN")
+# Get the API tokens
+WINDY_API_TOKEN_MAP = os.getenv("WINDY_API_TOKEN_MAP")
+WINDY_API_TOKEN_POINT = os.getenv("WINDY_API_TOKEN_POINT")
+WINDY_API_TOKEN_WEBCAMS = os.getenv("WINDY_API_TOKEN_WEBCAMS")
 
-if not WINDY_API_TOKEN:
-    print("CRITICAL: WINDY_API_TOKEN is not set. Please check your .env file.")
+if not all([WINDY_API_TOKEN_MAP, WINDY_API_TOKEN_POINT, WINDY_API_TOKEN_WEBCAMS]):
+    print("CRITICAL: One or more API tokens are not set. Please check your .env file.")
+
+app = Flask(__name__)
 
 def fetch_weather_data():
-    if not WINDY_API_TOKEN:
-        print("Error: WINDY_API_TOKEN not configured.")
+    if not WINDY_API_TOKEN_MAP:
+        print("Error: WINDY_API_TOKEN_MAP not configured.")
         return None
 
     # Example: Use the token to make an API call
-    # (This is a placeholder for actual API interaction logic)
-    print(f"Fetching weather data using token: {WINDY_API_TOKEN[:4]}...")
-    # response = requests.get(f"https://api.windy.com/..., headers={"X-Windy-API-Key": WINDY_API_TOKEN})
-    # data = response.json()
-    # return data
-    return {"temperature": 25, "condition": "Sunny"} # Placeholder data
+    print(f"Fetching weather data using token: {WINDY_API_TOKEN_MAP[:4]}...")
+    return {"temperature": 25, "condition": "Sunny"}  # Placeholder data
+
+@app.route('/')
+def index():
+    print("Debug: Entered index route")
+    weather = fetch_weather_data()
+    print("Debug: Weather data fetched:", weather)
+    if weather:
+        return f"Current weather: {weather}"
+    return "Error fetching weather data."
 
 if __name__ == "__main__":
-    if not WINDY_API_TOKEN:
-        print("Please configure your WINDY_API_TOKEN in a .env file.")
+    if not all([WINDY_API_TOKEN_MAP, WINDY_API_TOKEN_POINT, WINDY_API_TOKEN_WEBCAMS]):
+        print("Please configure all required API tokens in a .env file.")
     else:
-        print(f"Windy API Token loaded successfully: {WINDY_API_TOKEN[:4]}...")
+        print("Windy API Tokens loaded successfully.")
         # Example usage
         weather = fetch_weather_data()
         if weather:
             print(f"Current weather: {weather}")
 
-    # Your application's main logic would continue here
+    print("Debug: Flask application is running on http://localhost:8080")
+    app.run(host="0.0.0.0", port=8080)

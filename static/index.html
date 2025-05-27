@@ -15,55 +15,137 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="WindyMap">
     <style>
+        :root {
+            --primary: #0057b8;
+            --secondary: #00bfae;
+            --accent: #ff9800;
+            --background: transparent; /* We'll use a video/image background */
+            --surface: #ffffffcc; /* Card surface with slight transparency */
+            --text: #222831;
+            --muted: #6c757d;
+            --border: #e0e6ed;
+            --shadow: 0 2px 8px rgba(0,0,0,0.07);
+        }
         html, body {
             height: 100%;
             margin: 0;
             padding: 0;
-            width: 100vw;
+            font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+            background: var(--background);
+            color: var(--text);
+            position: relative;
             min-height: 100vh;
-            box-sizing: border-box;
-            background: #f5f7fa;
         }
-        body {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            width: 100vw;
+        /* 8-bit clouds video background */
+        .bg-video {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            object-fit: cover;
+            z-index: -2;
+            pointer-events: none;
+            filter: contrast(1.1) brightness(1.1) saturate(1.2);
         }
-        .map-container {
-            flex: 1 1 auto;
-            display: flex;
-            align-items: stretch;
-            justify-content: stretch;
-            width: 100vw;
-            height: 100%;
-            min-height: 0;
+        /* fallback for no video: 8-bit clouds GIF */
+        .bg-fallback {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: url('https://i.imgur.com/6QKjvQp.gif') repeat center center;
+            background-size: cover;
+            z-index: -2;
+            pointer-events: none;
+            opacity: 0.7;
         }
-        iframe {
-            border: none;
-            width: 100vw;
-            height: 80vh;
-            min-height: 300px;
-            min-width: 200px;
-            flex: 1 1 auto;
-            max-width: 100vw;
-            max-height: 100vh;
-        }
-        @media (max-width: 700px) {
-            iframe { min-height: 200px; height: 60vh; }
+        header, .container {
+            background: var(--surface);
+            backdrop-filter: blur(2px);
         }
         header {
-            background: #0077be;
+            background: linear-gradient(90deg, var(--primary) 60%, var(--secondary) 100%);
             color: #fff;
-            padding: 1rem;
+            padding: 1.2rem 0 1rem 0;
             text-align: center;
-            font-size: 1.2rem;
+            box-shadow: var(--shadow);
         }
-        .footer {
-            text-align: center;
-            color: #888;
-            font-size: 0.95em;
-            padding: 0.7rem 0;
+        h1 {
+            margin: 0 0 0.2em 0;
+            font-size: 2.2rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        .container {
+            max-width: 480px;
+            margin: 1.5rem auto;
+            background: var(--surface);
+            border-radius: 1.2rem;
+            box-shadow: var(--shadow);
+            padding: 1.5rem 1.2rem 1.2rem 1.2rem;
+        }
+        .weather-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.7rem;
+            margin-bottom: 1.2rem;
+        }
+        .weather-info strong {
+            color: var(--primary);
+        }
+        .map-container {
+            width: 100%;
+            aspect-ratio: 1.2/1;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            margin-bottom: 1.2rem;
+        }
+        .actions {
+            display: flex;
+            gap: 0.7rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+        button, .share-btn {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 2em;
+            padding: 0.7em 1.5em;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            transition: background 0.2s, transform 0.2s;
+        }
+        button:hover, .share-btn:hover {
+            background: var(--secondary);
+            transform: translateY(-2px) scale(1.04);
+        }
+        .coords {
+            font-size: 1em;
+            color: var(--muted);
+            margin-bottom: 0.5em;
+        }
+        @media (max-width: 600px) {
+            .container {
+                max-width: 98vw;
+                padding: 1.1rem 0.5rem 1rem 0.5rem;
+            }
+            h1 {
+                font-size: 1.4rem;
+            }
+            .map-container {
+                aspect-ratio: 1/1.1;
+            }
+        }
+        /* Power: subtle animated accent bar */
+        .accent-bar {
+            height: 4px;
+            width: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--secondary));
+            animation: accent-move 2.5s linear infinite alternate;
+        }
+        @keyframes accent-move {
+            0% { filter: brightness(1.1); }
+            100% { filter: brightness(1.4); }
         }
     </style>
     <script>
@@ -88,30 +170,47 @@
     </script>
 </head>
 <body>
+    <!-- 8-bit clouds video background (public domain, fallback to GIF if video fails) -->
+    <video class="bg-video" autoplay loop muted playsinline poster="https://i.imgur.com/6QKjvQp.gif">
+        <source src="https://cdn.pixabay.com/video/2023/03/14/156661-810282209_large.mp4" type="video/mp4">
+        <!-- Fallback image for browsers that don't support video -->
+    </video>
+    <div class="bg-fallback"></div>
     <header>
-        <h1>Windy.com Map Portal</h1>
-        <div style="font-size:1rem;">Responsive, mobile-friendly weather map</div>
-        <button onclick="sharePortal()" style="margin-top:0.5em;padding:0.5em 1em;background:#0077be;color:#fff;border:none;border-radius:4px;cursor:pointer;">Share</button>
+        <h1>Weather Power Portal</h1>
+        <div class="accent-bar"></div>
     </header>
-    <div class="map-container">
-        <!-- 
-          Embed Windy.com map using an iframe.
-          Parameters can be adjusted:
-          - lat, lon: Initial latitude and longitude
-          - zoom: Initial zoom level (e.g., 3-18)
-          - overlay: Default weather overlay (e.g., 'wind', 'waves', 'temp', 'rain')
-          - product: Weather model (e.g., 'ecmwf', 'gfs')
-          - level: Altitude level (e.g., 'surface')
-          - key: Your Windy API key
-          
-          Refer to Windy's embedding documentation for all available parameters.
-        -->
-        <iframe 
-            src="https://embed.windy.com/embed2.html?lat=20.1&lon=10.1&zoom=3&overlay=wind&key=44oA05Vewb0z27oMjdl5lRr8Cjy0Ggfr"
-            allowfullscreen
-            title="Windy.com Weather Map"
-        ></iframe>
-    </div>
+    <main>
+        <div class="container">
+            <div class="coords" id="coordsDisplay">Lat: --, Lon: --</div>
+            <div class="map-container" id="mapContainer">
+                <!-- 
+                  Embed Windy.com map using an iframe.
+                  Parameters can be adjusted:
+                  - lat, lon: Initial latitude and longitude
+                  - zoom: Initial zoom level (e.g., 3-18)
+                  - overlay: Default weather overlay (e.g., 'wind', 'waves', 'temp', 'rain')
+                  - product: Weather model (e.g., 'ecmwf', 'gfs')
+                  - level: Altitude level (e.g., 'surface')
+                  - key: Your Windy API key
+                  
+                  Refer to Windy's embedding documentation for all available parameters.
+                -->
+                <iframe 
+                    src="https://embed.windy.com/embed2.html?lat=20.1&lon=10.1&zoom=3&overlay=wind&key=44oA05Vewb0z27oMjdl5lRr8Cjy0Ggfr"
+                    allowfullscreen
+                    title="Windy.com Weather Map"
+                ></iframe>
+            </div>
+            <div class="weather-info" id="weatherInfo">
+                <!-- ...existing weather info... -->
+            </div>
+            <div class="actions">
+                <button id="refreshBtn">Refresh</button>
+                <button class="share-btn" id="shareBtn">Share</button>
+            </div>
+        </div>
+    </main>
     <div class="footer">
         &copy; 2025 Windy.com | <a href="https://www.w3schools.com/html/html_responsive.asp" target="_blank">Responsive Design Info</a>
     </div>

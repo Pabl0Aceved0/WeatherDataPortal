@@ -1,0 +1,32 @@
+# Python virtual environment
+.venv/
+
+# Python bytecode files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# OS-generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE/Editor specific files
+.vscode/
+# .idea/ # Example for JetBrains IDEs
+
+# Secrets - if you were to use a .env file, for example
+.env
+.env.*
+src/.env
+src/.env.*
+
+# Localhost certificates (if you decide not to commit them)
+certs/localhost.crt
+certs/localhost.key
+*.log
+*.bak

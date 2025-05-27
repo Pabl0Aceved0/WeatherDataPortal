@@ -1,0 +1,21 @@
+{
+  "name": "Windy.com Map Portal",
+  "short_name": "WindyMap",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f5f7fa",
+  "theme_color": "#0077be",
+  "description": "Mobile-friendly weather portal with interactive Windy.com map and real-time weather data.",
+  "icons": [
+    {
+      "src": "https://www.windy.com/img/logo/logo-windy-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://www.windy.com/img/logo/logo-windy-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

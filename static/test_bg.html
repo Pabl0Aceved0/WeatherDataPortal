@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>8-bit Clouds Background Test</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    .bg-video {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      object-fit: cover;
+      z-index: -2;
+      pointer-events: none;
+      filter: contrast(1.1) brightness(1.1) saturate(1.2);
+    }
+    .bg-fallback {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: url('https://i.imgur.com/6QKjvQp.gif') repeat center center;
+      background-size: cover;
+      z-index: -2;
+      pointer-events: none;
+      opacity: 0.7;
+    }
+    .test-content {
+      position: relative;
+      z-index: 1;
+      color: #fff;
+      font-size: 2rem;
+      text-align: center;
+      margin-top: 30vh;
+      text-shadow: 0 2px 8px #222;
+    }
+  </style>
+</head>
+<body>
+  <video class="bg-video" autoplay loop muted playsinline poster="https://i.imgur.com/6QKjvQp.gif">
+    <source src="https://cdn.pixabay.com/video/2023/03/14/156661-810282209_large.mp4" type="video/mp4">
+  </video>
+  <div class="bg-fallback"></div>
+  <div class="test-content">If you see clouds moving, your browser supports the 8-bit video background!</div>
+</body>
+</html>

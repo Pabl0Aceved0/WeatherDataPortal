@@ -35,5 +35,10 @@
         src="https://embed.windy.com/embed2.html?lat=20.1&lon=10.1&zoom=3&overlay=wind&key=44oA05Vewb0z27oMjdl5lRr8Cjy0Ggfr"
         allowfullscreen>
     </iframe>
+    <script>
+      const windyApiKey = "YOUR_WINDY_API_KEY"; // Replace with dynamic fetching logic
+      const iframeSrc = `https://embed.windy.com/embed2.html?lat=20.1&lon=10.1&zoom=3&overlay=wind&key=${windyApiKey}`;
+      document.querySelector('iframe').src = iframeSrc;
+    </script>
 </body>
 </html>

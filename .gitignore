@@ -20,7 +20,8 @@ Thumbs.db
 # .idea/ # Example for JetBrains IDEs
 
 # Secrets - if you were to use a .env file, for example
-# .env
+.env
+WINDY_API_TOKEN="YOUR_WINDY_API_TOKEN_HERE"
 
 # Localhost certificates (if you decide not to commit them)
 # localhost.crt

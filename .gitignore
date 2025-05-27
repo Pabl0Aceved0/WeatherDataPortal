@@ -30,3 +30,4 @@ certs/localhost.crt
 certs/localhost.key
 *.log
 *.bak
+checkov_report.json/

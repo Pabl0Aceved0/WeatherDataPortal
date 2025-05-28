@@ -555,4 +555,6 @@ if __name__ == "__main__":
             print(f"Current weather: {weather}")
 
     print("Debug: Flask application is running on http://localhost:8080")
-    app.run(host="0.0.0.0", port=8080, debug=True)
+    flask_env = os.getenv("FLASK_ENV", "production")
+    debug_mode = flask_env == "development"
+    app.run(host="0.0.0.0", port=8080, debug=debug_mode)

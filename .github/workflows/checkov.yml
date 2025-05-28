@@ -26,3 +26,8 @@ jobs:
           directory: .
           quiet: true
           soft_fail: false
+      - name: Upload Checkov Report as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkov-report
+          path: checkov_report.json/

@@ -1,18 +1,34 @@
+"""Central configuration: loads Windy API tokens from the environment / .env file.
+
+Token values are never printed or logged.
+"""
+import logging
 import os
+
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
 load_dotenv()
 
-# Debugging statements
-print("Debug: Attempting to load .env file...")
-print("Debug: WINDY_API_TOKEN loaded from .env file:", os.getenv("WINDY_API_TOKEN"))
+logger = logging.getLogger(__name__)
 
-# Get the API token
-WINDY_API_TOKEN = os.getenv("WINDY_API_TOKEN") or "your_actual_windy_api_key"
+WINDY_API_TOKEN = os.getenv("WINDY_API_TOKEN")
+WINDY_API_TOKEN_MAP = os.getenv("WINDY_API_TOKEN_MAP")
+WINDY_API_TOKEN_POINT = os.getenv("WINDY_API_TOKEN_POINT")
+WINDY_API_TOKEN_WEBCAMS = os.getenv("WINDY_API_TOKEN_WEBCAMS")
 
-# Final value debug
-print("Debug: Final WINDY_API_TOKEN value:", WINDY_API_TOKEN)
+REQUIRED_TOKENS = {
+    "WINDY_API_TOKEN_MAP": WINDY_API_TOKEN_MAP,
+    "WINDY_API_TOKEN_POINT": WINDY_API_TOKEN_POINT,
+    "WINDY_API_TOKEN_WEBCAMS": WINDY_API_TOKEN_WEBCAMS,
+}
 
-if not WINDY_API_TOKEN:
-    print("CRITICAL: WINDY_API_TOKEN is not set. Please check your .env file.")
+
+def missing_tokens():
+    """Return the names of required tokens that are not set."""
+    return [name for name, value in REQUIRED_TOKENS.items() if not value]
+
+
+if missing_tokens():
+    logger.warning(
+        "Missing API tokens: %s. Check your .env file.", ", ".join(missing_tokens())
+    )

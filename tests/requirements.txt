@@ -1,5 +1,2 @@
-Flask
-waitress
-cryptography>=44.0.1
-requests
-python-dotenv
+-r ../requirements.txt
+pytest

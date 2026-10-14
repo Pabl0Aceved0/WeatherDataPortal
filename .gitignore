@@ -22,8 +22,10 @@ Thumbs.db
 # Secrets - if you were to use a .env file, for example
 .env
 .env.*
+*.env.txt
 src/.env
 src/.env.*
+!.env.example
 
 # Localhost certificates (if you decide not to commit them)
 certs/localhost.crt

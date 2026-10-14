@@ -1,26 +1,22 @@
 import os
 import requests
-from dotenv import load_dotenv
 from flask import Flask, jsonify, render_template_string, request, send_from_directory
 
-# Load environment variables from .env file
-# This should be done early in your application's lifecycle
-load_dotenv()
-
-# Get the API tokens
-WINDY_API_TOKEN = os.getenv("WINDY_API_TOKEN")
-WINDY_API_TOKEN_MAP = os.getenv("WINDY_API_TOKEN_MAP")
-WINDY_API_TOKEN_POINT = os.getenv("WINDY_API_TOKEN_POINT")
-WINDY_API_TOKEN_WEBCAMS = os.getenv("WINDY_API_TOKEN_WEBCAMS")
-
-if not all([WINDY_API_TOKEN_MAP, WINDY_API_TOKEN_POINT, WINDY_API_TOKEN_WEBCAMS]):
-    print("CRITICAL: One or more API tokens are not set. Please check your .env file.")
-
-# Debugging statement to verify token loading
-print("Debug: Loaded WINDY_API_TOKEN:", WINDY_API_TOKEN[:4] + "..." if WINDY_API_TOKEN else "None")
-print("Debug: Loaded WINDY_API_TOKEN_MAP:", WINDY_API_TOKEN_MAP[:4] + "..." if WINDY_API_TOKEN_MAP else "None")
-print("Debug: Loaded WINDY_API_TOKEN_POINT:", WINDY_API_TOKEN_POINT[:4] + "..." if WINDY_API_TOKEN_POINT else "None")
-print("Debug: Loaded WINDY_API_TOKEN_WEBCAMS:", WINDY_API_TOKEN_WEBCAMS[:4] + "..." if WINDY_API_TOKEN_WEBCAMS else "None")
+# Tokens are loaded (and never logged) by the shared config module.
+try:  # imported as part of the "src" package (gunicorn / waitress src.app:app)
+    from .config import (
+        WINDY_API_TOKEN,
+        WINDY_API_TOKEN_MAP,
+        WINDY_API_TOKEN_POINT,
+        WINDY_API_TOKEN_WEBCAMS,
+    )
+except ImportError:  # run directly via run.py, where src/ is on sys.path
+    from config import (
+        WINDY_API_TOKEN,
+        WINDY_API_TOKEN_MAP,
+        WINDY_API_TOKEN_POINT,
+        WINDY_API_TOKEN_WEBCAMS,
+    )
 
 # Set static_folder to the correct absolute path
 STATIC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'static'))

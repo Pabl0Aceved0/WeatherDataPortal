@@ -1,0 +1,5 @@
+Flask
+waitress
+cryptography>=44.0.1
+requests
+python-dotenv

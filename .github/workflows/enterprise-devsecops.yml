@@ -63,11 +63,8 @@ jobs:
         run: pytest --cov=src --cov-report=xml tests/
 
   build-container:
-    name: Build, Push & Store Docker Image
+    name: Build & Store Docker Image
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
     needs: test-coverage
     steps:
       - name: Checkout code
@@ -76,15 +73,6 @@ jobs:
         uses: docker/setup-buildx-action@v3
       - name: Build Docker image
         run: docker build -t weatherdataportal:ci .
-      - name: Push Docker image to GitHub Container Registry
-        if: github.event_name == 'push'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          IMAGE="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/weatherdataportal"
-          echo "$GH_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
-          docker tag weatherdataportal:ci "$IMAGE:latest"
-          docker push "$IMAGE:latest"
       - name: Save Docker image locally
         run: docker save weatherdataportal:ci | gzip > weatherdataportal_ci.tar.gz
       - name: Upload Docker image artifact
@@ -92,33 +80,5 @@ jobs:
         with:
           name: weatherdataportal-docker-image
           path: weatherdataportal_ci.tar.gz
-
-  deploy:
-    name: Deploy to Production Server
-    runs-on: ubuntu-latest
-    needs: build-container
-    if: github.event_name == 'push'
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Build Docker image
-        run: docker build -t weatherdataportal:prod .
-      - name: Push Docker image to GitHub Container Registry
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          IMAGE="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/weatherdataportal"
-          echo "$GH_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
-          docker tag weatherdataportal:prod "$IMAGE:latest"
-          docker push "$IMAGE:latest"
-      - name: Deploy Web App
-        run: |
-          IMAGE="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/weatherdataportal"
-          docker run -d -p 8080:8080 "$IMAGE:latest"
 
 # To enable auto-deploy, add a deploy job with secrets for your environment.
